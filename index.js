@@ -1,4 +1,4 @@
-const quip = require('./quip');
+const quip = require('./lib/quip');
 const tableToJson = require('tabletojson').Tabletojson;
 const googleCalendar = require('node-google-calendar');
 
@@ -7,10 +7,28 @@ const RECURRING_EVENT_ID_PREFIX = 'rsfv';
 
 require('dotenv').config();
 
-const googleCalendarConfig = require('./config');
+const googleCalendarConfig = require('./lib/config');
 const calendarClient = new googleCalendar(googleCalendarConfig);
 const myCalendar = googleCalendarConfig.calendarId.myCal;
 
+calendarClient.Events.get(myCalendar, 'ssfv4', {})
+            .then(result => {
+                console.log(`ssfv4: ` + result);
+            })
+            .catch(error => {
+                console.log(`ssfv4: ` + error);
+            });
+
+calendarClient.Events.get(myCalendar, 'ssfv100', {})
+            .then(result => {
+                console.log(`ssfv100: ` + result);
+            })
+            .catch(error => {
+                console.log(JSON.parse(error.message).error.statusCode.substring(0,2));
+                //console.log(JSON.stringify(error));
+            });           
+
+            
 const quipClient = new quip.Client({ accessToken: process.env.QUIP_ACCESS_TOKEN });
 quipClient.getThread(process.env.QUIP_THREAD_ID, (error, result) => {
     if (error) {
@@ -18,8 +36,9 @@ quipClient.getThread(process.env.QUIP_THREAD_ID, (error, result) => {
     }
     const html = result.html;
     const converted = tableToJson.convert(html);
+
+    // TODO: Sync recurring event
     // converted[0] is the scheduled event table;
-    
     converted[0].forEach((row, index) => {
         if (index === 0) {
             return true; 
@@ -29,7 +48,6 @@ quipClient.getThread(process.env.QUIP_THREAD_ID, (error, result) => {
         }
         const eventId = `${SINGLE_EVENT_ID_PREFIX}${row.A}`;
         const event = {
-            'id': eventId,
             'start':  {'dateTime': buildStartDateTime(row) },
             'end': {'dateTime': buildEndDateTime(row) },
             'summary': row.B,
@@ -40,26 +58,23 @@ quipClient.getThread(process.env.QUIP_THREAD_ID, (error, result) => {
             ...event
         };
         
-        /*
+        // TODO: Use async
+        // Find existing events
         calendarClient.Events.get(myCalendar, eventId, {})
             .then(result => {
-                console.log(`${eventId}: ` + result);
+                // If exists, update
+                calendarClient.Events.update(myCalendar, eventId, event);
             })
             .catch(error => {
+                const statusCode = JSON.parse(error.message).error.statusCode.substring(0, 3)
+                // If not exists, insert
+                if (statusCode === '404') {
+                    calendarClient.Events.insert(myCalendar, newEvent);
+                }
                 console.log(`${eventId}: ` + error);
             });
-        
-        */
-        calendarClient.Events.insert(myCalendar, newEvent)
-            .then(result => {
-                console.log(`${eventId}: inserted.`);
-            })
-            .catch(err => {
-                console.log(`ERROR ${eventId}: ${JSON.stringify(err.message)}`);
-            });
-        
     }); 
-
+    
 })
 
 const buildStartDateTime = (row) => {
