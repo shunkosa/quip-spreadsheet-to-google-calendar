@@ -1,5 +1,5 @@
-## Node.js app to sync a quip spreadsheet to Google Calendar
-### Development
+# Node.js app to sync a Quip Spreadsheet to Google Calendar
+## Development
 1. Create `.env` file.
 
 ```
