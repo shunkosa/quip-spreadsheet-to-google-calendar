@@ -1,0 +1,24 @@
+{
+  "name": "quip-spreadsheet-to-google-calendar",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shunkosa/quip-spreadsheet-to-google-calendar.git"
+  },
+  "author": "Shun Kosaka",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shunkosa/quip-spreadsheet-to-google-calendar/issues"
+  },
+  "homepage": "https://github.com/shunkosa/quip-spreadsheet-to-google-calendar#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "node-google-calendar": "^1.1.1",
+    "tabletojson": "^2.0.4"
+  }
+}
