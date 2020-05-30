@@ -45,15 +45,28 @@ quipClient.getThread(process.env.QUIP_THREAD_ID, (error, result) => {
         calendarClient.Events.get(myCalendar, eventId, {})
             .then(result => {
                 // If exists, update
-                calendarClient.Events.update(myCalendar, eventId, event);
+                calendarClient.Events.update(myCalendar, eventId, event)
+                    .then(updateResult => {
+                        console.log(`${eventId} update success`);
+                    })
+                    .catch(updateError => {
+                        console.log(`${eventId} update error ` + updateError);
+                    });
             })
             .catch(error => {
                 const statusCode = JSON.parse(error.message).error.statusCode.substring(0, 3)
                 // If not exists, insert
                 if (statusCode === '404') {
-                    calendarClient.Events.insert(myCalendar, newEvent);
+                    calendarClient.Events.insert(myCalendar, newEvent)
+                        .then(insertResult => {
+                            console.log(`${eventId} insert success`);
+                        })
+                        .catch(insertError => {
+                            console.log(`${eventId} insert error ` + insertError);
+                        });
+                } else {
+                    console.log(`${eventId}: ` + error);
                 }
-                console.log(`${eventId}: ` + error);
             });
     }); 
     
@@ -69,7 +82,7 @@ const buildStartDateTime = (row) => {
 const buildEndDateTime = (row) => {
     const endDate = formatDate(row.F);
     const endHour = row.H.length > 1 ? row.H.split(':')[0].padStart(2, '0') : String(Number(row.G.split(':')[0]) + 2).padStart(2, '0');
-    const endMinute = row.H.length > 1 ? row.H.split(':')[1].padStart(2, '0') : row.G.split(':')[1];
+    const endMinute = row.H.length > 1 ? row.H.split(':')[1].substring(0, 2).padStart(2, '0') : row.G.split(':')[1];
     const offset = TimezoneOffset[row.I] ? TimezoneOffset[row.I] : '+00:00';
     return `${endDate}T${endHour}:${endMinute}:00${offset}`;
 }
@@ -92,7 +105,9 @@ const formatDate = (dateString) => {
 
 // H:MM to HH:MM:00
 const formatTime = (timeString) => {
-    return `${timeString.split(':')[0].padStart(2, '0')}:${timeString.split(':')[1].padStart(2, '0')}:00`;
+    const hour = timeString.split(':')[0];
+    const minute = timeString.split(':')[1].substring(0, 2);
+    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:00`;
 }
 
 const isEmptyRow = (row) => {
