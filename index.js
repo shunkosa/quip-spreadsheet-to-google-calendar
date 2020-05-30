@@ -10,24 +10,6 @@ require('dotenv').config();
 const googleCalendarConfig = require('./lib/config');
 const calendarClient = new googleCalendar(googleCalendarConfig);
 const myCalendar = googleCalendarConfig.calendarId.myCal;
-
-calendarClient.Events.get(myCalendar, 'ssfv4', {})
-            .then(result => {
-                console.log(`ssfv4: ` + result);
-            })
-            .catch(error => {
-                console.log(`ssfv4: ` + error);
-            });
-
-calendarClient.Events.get(myCalendar, 'ssfv100', {})
-            .then(result => {
-                console.log(`ssfv100: ` + result);
-            })
-            .catch(error => {
-                console.log(JSON.parse(error.message).error.statusCode.substring(0,2));
-                //console.log(JSON.stringify(error));
-            });           
-
             
 const quipClient = new quip.Client({ accessToken: process.env.QUIP_ACCESS_TOKEN });
 quipClient.getThread(process.env.QUIP_THREAD_ID, (error, result) => {
